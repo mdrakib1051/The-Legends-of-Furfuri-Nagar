@@ -6,57 +6,33 @@
     --text-en: 'Outfit', sans-serif;
     --text-bn: 'Hind Siliguri', sans-serif;
 }
-
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background-color: #000; color: #fff; font-family: var(--text-bn); overflow-x: hidden; }
-
-/* Access Portal */
 .portal-overlay { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
 .portal-box { text-align: center; padding: 40px; border: 1px solid var(--accent-color); border-radius: 24px; background: #0a0a0c; box-shadow: 0 0 30px var(--accent-glow); }
 .glitch-text { font-family: var(--text-en); font-size: 2rem; color: var(--accent-color); letter-spacing: 4px; margin-bottom: 20px; font-weight: 800; }
 #pass-input { background: #111; border: 1px solid #333; padding: 12px; color: #fff; border-radius: 8px; text-align: center; margin-bottom: 20px; display: block; width: 100%; }
-
-/* Backgrounds */
 .bg-overlay { position: fixed; inset: 0; background: radial-gradient(circle at 50% -10%, #1a1a3a 0%, #050507 80%); z-index: -2; }
 .scanlines { position: fixed; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0.01) 50%, transparent 50%); background-size: 100% 4px; z-index: -1; pointer-events: none; }
-
 header { text-align: center; padding: 80px 20px 40px; }
 .top-meta { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto 20px; }
-.status-live { font-family: var(--text-en); font-size: 0.7rem; color: #ff3366; letter-spacing: 2px; }
-
-/* Buttons */
-.btn-create, .btn-premium, .btn-submit {
-    background: linear-gradient(135deg, var(--accent-color), #4facfe);
-    color: #000; border: none; padding: 10px 22px; border-radius: 50px;
-    font-family: var(--text-en); font-weight: 800; cursor: pointer; transition: 0.3s;
-}
-.btn-create:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent-glow); }
-
+.btn-create, .btn-premium, .btn-submit { background: linear-gradient(135deg, var(--accent-color), #4facfe); color: #000; border: none; padding: 10px 22px; border-radius: 50px; font-family: var(--text-en); font-weight: 800; cursor: pointer; transition: 0.3s; }
 header h1 { font-family: var(--text-en); font-size: clamp(2.5rem, 6vw, 4rem); background: linear-gradient(135deg, #fff, var(--accent-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-/* Grid & Cards */
 .container { max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; padding: 40px; }
 .member-card { height: 400px; perspective: 1000px; }
 .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); transform-style: preserve-3d; }
 .member-card:hover .card-inner { transform: rotateY(180deg); }
-
 .card-front, .card-back { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(15px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; }
 .card-front { background: var(--card-bg); border-bottom: 3px solid var(--accent-color); }
 .card-back { background: rgba(10, 10, 15, 0.98); transform: rotateY(180deg); }
-
 .avatar { width: 120px; height: 120px; border-radius: 50%; border: 2px solid var(--accent-color); padding: 5px; margin-bottom: 15px; }
 .name { font-size: 1.6rem; font-weight: 700; text-align: center; }
 .role { font-family: var(--text-en); color: var(--accent-color); font-size: 0.8rem; letter-spacing: 2px; }
 .bio { text-align: center; font-size: 0.9rem; color: #ccc; margin-top: 15px; }
-
-/* Security Features */
 .delete-btn { margin-top: 20px; background: none; border: 1px solid #ff3366; color: #ff3366; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-family: var(--text-en); font-size: 0.7rem; transition: 0.3s; }
 .delete-btn:hover { background: #ff3366; color: #fff; }
-
-/* Modal */
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; backdrop-filter: blur(8px); }
 .modal-content { background: #111; margin: 5% auto; padding: 30px; border: 1px solid var(--accent-color); width: 90%; max-width: 400px; border-radius: 20px; }
 #member-form input, #member-form textarea, #member-form select { width: 100%; background: #1a1a1a; border: 1px solid #333; padding: 12px; color: #fff; margin-bottom: 15px; border-radius: 10px; font-family: var(--text-bn); }
 .close-btn { float: right; font-size: 28px; cursor: pointer; color: #666; }
-
 footer { text-align: center; padding: 40px; color: #444; font-family: var(--text-en); font-size: 0.7rem; }
