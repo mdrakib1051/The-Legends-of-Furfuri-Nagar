@@ -1,31 +1,39 @@
-// ১. পাসওয়ার্ড প্রোটেকশন
-const accessPass = prompt("এন্টার এক্সেস কোড:");
-if (accessPass === "20262026") {
-    document.getElementById("main-body").style.display = "block";
-} else {
-    alert("ভুল পাসওয়ার্ড! এক্সেস ডিনাইড।");
-    window.location.reload();
-}
-
-// ২. Firebase কনফিগারেশন (ডেমো - তুমি পরে নিজেরটা বসাতে পারো)
+// ১. Firebase Setup (তুমি তোমার Firebase Console থেকে এই কনফিগটি আপডেট করে নেবে)
 const firebaseConfig = {
-    databaseURL: "https://YOUR-PROJECT-ID.firebaseio.com" // এখানে তোমার ডাটাবেস ইউআরএল বসবে
+    databaseURL: "https://your-project-default-rtdb.firebaseio.com/" 
 };
-// নিচের অংশে Firebase সেটআপ না করা থাকলে এটা LocalStorage এ চলবে, 
-// কিন্তু Firebase কানেক্ট করলে গ্লোবাল হয়ে যাবে।
+
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// ডিভাইসের ইউনিক আইডি (নিজেস্ব কার্ড চেনার জন্য)
-const userId = localStorage.getItem('unique_user_id') || 'ID-' + Math.random().toString(36).substr(2, 9);
-localStorage.setItem('unique_user_id', userId);
+// ২. Security & Device ID
+const deviceId = localStorage.getItem('leg_dev_id') || 'USER-' + Math.random().toString(36).substr(2, 9);
+localStorage.setItem('leg_dev_id', deviceId);
+document.getElementById('device-id').innerText = deviceId;
 
-// ৩. ডাটা লোড করা (Realtime)
-database.ref('members').on('value', (snapshot) => {
-    const data = snapshot.val();
-    const membersList = data ? Object.entries(data) : [];
-    renderCards(membersList);
-});
+// ৩. Access Control
+function checkAccess() {
+    const pass = document.getElementById('pass-input').value;
+    if (pass === "20262026") {
+        gsap.to("#access-portal", { opacity: 0, duration: 0.5, onComplete: () => {
+            document.getElementById('access-portal').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            initApp();
+        }});
+    } else {
+        alert("ACCESS DENIED");
+    }
+}
+
+// ৪. App Logic
+function initApp() {
+    // Realtime Data Fetch
+    database.ref('members').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const list = data ? Object.entries(data) : [];
+        renderCards(list);
+    });
+}
 
 function renderCards(members) {
     const grid = document.getElementById('member-grid');
@@ -34,11 +42,7 @@ function renderCards(members) {
 
     members.forEach(([key, m]) => {
         const statusColor = m.status === 'online' ? '#00ff88' : (m.status === 'busy' ? '#ffcc00' : '#777');
-        
-        // শুধু কার্ডের মালিক ডিলিট বাটন দেখতে পাবে
-        const deleteBtn = (m.ownerId === userId) 
-            ? `<button onclick="deleteCard('${key}')" class="delete-btn">DELETE</button>` 
-            : '';
+        const isOwner = m.owner === deviceId;
 
         const card = document.createElement('div');
         card.className = 'member-card';
@@ -47,47 +51,47 @@ function renderCards(members) {
                 <div class="card-front">
                     <div style="position:relative">
                         <img src="https://api.dicebear.com/8.x/avataaars/svg?seed=${m.seed}" class="avatar">
-                        <span class="status-dot" style="background:${statusColor};"></span>
+                        <span style="position:absolute; bottom:20px; right:10px; height:12px; width:12px; background:${statusColor}; border-radius:50%; border:2px solid #141419;"></span>
                     </div>
                     <h2 class="name">${m.name}</h2>
                     <span class="role">${m.role}</span>
                 </div>
                 <div class="card-back">
-                    <h3 class="bio-head">BIO DATA</h3>
+                    <h3 style="font-family:var(--text-en); color:var(--accent-color); font-size:0.7rem; letter-spacing:2px;">BIO DATA</h3>
                     <p class="bio">"${m.bio}"</p>
-                    ${deleteBtn}
+                    ${isOwner ? `<button onclick="deleteCard('${key}')" class="delete-btn">DELETE</button>` : ''}
                 </div>
             </div>
         `;
         grid.appendChild(card);
     });
-    gsap.to(".member-card", { opacity: 1, y: 0, stagger: 0.1 });
+    gsap.from(".member-card", { opacity: 0, y: 30, stagger: 0.1 });
 }
 
-// ৪. কার্ড তৈরি এবং সেভ করা
+// ৫. Modal & Form
+const modal = document.getElementById("profile-modal");
+document.getElementById("open-modal").onclick = () => modal.style.display = "block";
+document.querySelector(".close-btn").onclick = () => modal.style.display = "none";
+
 document.getElementById('member-form').onsubmit = (e) => {
     e.preventDefault();
-    const newLegend = {
+    const newMember = {
         name: document.getElementById('member-name').value,
         role: document.getElementById('member-role').value,
         bio: document.getElementById('member-bio').value,
         seed: document.getElementById('avatar-seed').value,
         status: document.getElementById('member-status').value,
-        ownerId: userId // এই ডিভাইসের আইডি সেভ হচ্ছে
+        owner: deviceId
     };
 
-    database.ref('members').push(newLegend);
-    document.getElementById("profile-modal").style.display = "none";
-    e.target.reset();
+    database.ref('members').push(newMember).then(() => {
+        modal.style.display = "none";
+        e.target.reset();
+    });
 };
 
 function deleteCard(key) {
-    if(confirm("আপনি কি নিশ্চিত?")) {
+    if(confirm("প্রোফাইলটি চিরতরে মুছে ফেলতে চান?")) {
         database.ref('members/' + key).remove();
     }
 }
-
-// Modal Toggle (আগের মতোই)
-const modal = document.getElementById("profile-modal");
-document.getElementById("open-modal").onclick = () => modal.style.display = "block";
-document.querySelector(".close-btn").onclick = () => modal.style.display = "none";
