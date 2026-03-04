@@ -1,6 +1,6 @@
-// ১. Firebase Setup (Replace with your actual Firebase Realtime Database URL)
+// ১. Firebase Setup (Your Verified URL)
 const firebaseConfig = {
-    databaseURL: "https://your-project-id.firebaseio.com/" 
+    databaseURL: "https://legends-hub-defb6-default-rtdb.firebaseio.com/" 
 };
 
 // Initialize Firebase
@@ -9,9 +9,9 @@ if (!firebase.apps.length) {
 }
 const database = firebase.database();
 
-// ২. Device ID (Security)
-const deviceId = localStorage.getItem('legend_device_id') || 'UID-' + Math.random().toString(36).substr(2, 9);
-localStorage.setItem('legend_device_id', deviceId);
+// ২. Device Security ID
+const deviceId = localStorage.getItem('leg_dev_id') || 'UID-' + Math.random().toString(36).substr(2, 9);
+localStorage.setItem('leg_dev_id', deviceId);
 document.getElementById('device-id').innerText = deviceId;
 
 // ৩. Access Authorization
@@ -21,31 +21,30 @@ function checkAccess() {
         gsap.to("#access-portal", { opacity: 0, duration: 0.5, onComplete: () => {
             document.getElementById('access-portal').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
-            initLegendsHub();
+            startApp();
         }});
     } else {
-        alert("ACCESS DENIED: INCORRECT CODE");
+        alert("ACCESS DENIED!");
     }
 }
 
-// ৪. Dashboard Logic
-function initLegendsHub() {
-    // Listen for global data changes
+// ৪. Realtime Logic
+function startApp() {
     database.ref('legends').on('value', (snapshot) => {
         const data = snapshot.val();
         const list = data ? Object.entries(data) : [];
-        renderDashboard(list);
+        renderCards(list);
     });
 }
 
-function renderDashboard(members) {
+function renderCards(members) {
     const grid = document.getElementById('member-grid');
     document.getElementById('total-count').innerText = members.length;
     grid.innerHTML = '';
 
     members.forEach(([key, m]) => {
         const statusColor = m.status === 'online' ? '#00ff88' : (m.status === 'busy' ? '#ffcc00' : '#777');
-        const isOwner = m.ownerId === deviceId;
+        const isOwner = m.owner === deviceId;
 
         const card = document.createElement('div');
         card.className = 'member-card';
@@ -62,7 +61,7 @@ function renderDashboard(members) {
                 <div class="card-back">
                     <h3 style="font-family:var(--text-en); color:var(--accent-color); font-size:0.7rem; letter-spacing:2px;">BIO DATA</h3>
                     <p class="bio">"${m.bio}"</p>
-                    ${isOwner ? `<button onclick="removeLegend('${key}')" class="delete-btn">DELETE PROFILE</button>` : ''}
+                    ${isOwner ? `<button onclick="deleteCard('${key}')" class="delete-btn">DELETE PROFILE</button>` : ''}
                 </div>
             </div>
         `;
@@ -71,11 +70,7 @@ function renderDashboard(members) {
     gsap.from(".member-card", { opacity: 0, y: 30, stagger: 0.1 });
 }
 
-// ৫. Modal & Form Logic (Fixing Initialize Card Issue)
-const modal = document.getElementById("profile-modal");
-document.getElementById("open-modal").onclick = () => modal.style.display = "block";
-document.querySelector(".close-btn").onclick = () => modal.style.display = "none";
-
+// ৫. Generate Card Function
 document.getElementById('member-form').onsubmit = function(e) {
     e.preventDefault();
     const submitBtn = document.getElementById('submit-btn');
@@ -88,10 +83,9 @@ document.getElementById('member-form').onsubmit = function(e) {
         bio: document.getElementById('member-bio').value,
         seed: document.getElementById('avatar-seed').value,
         status: document.getElementById('member-status').value,
-        ownerId: deviceId // Security Token
+        owner: deviceId 
     };
 
-    // Global Push to Firebase
     database.ref('legends').push(legendData)
         .then(() => {
             modal.style.display = "none";
@@ -100,13 +94,19 @@ document.getElementById('member-form').onsubmit = function(e) {
             submitBtn.disabled = false;
         })
         .catch(err => {
-            alert("Database Connection Error. Check Firebase URL.");
+            alert("Database Connection Error. Please check Rules in Firebase.");
+            submitBtn.innerText = "GENERATE CARD";
             submitBtn.disabled = false;
         });
 };
 
-function removeLegend(key) {
-    if(confirm("Are you sure you want to delete your profile?")) {
+// Modal Controls
+const modal = document.getElementById("profile-modal");
+document.getElementById("open-modal").onclick = () => modal.style.display = "block";
+document.querySelector(".close-btn").onclick = () => modal.style.display = "none";
+
+function deleteCard(key) {
+    if(confirm("প্রোফাইলটি ডিলিট করতে চান?")) {
         database.ref('legends/' + key).remove();
     }
 }
